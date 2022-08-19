@@ -23,8 +23,13 @@ head(id2)
 # confirm that all are unique values
 length(unique(id2))
 
+id_p1 <- id2[1:20000]
+id_p2 <- id2[20001:40000]
+
 # export as CSV file
-write.csv(id2, "list.csv")
+write.csv(id_p1, "list.csv")
+write.csv(id_p2, "list2.csv")
+
 ```
 
 
