@@ -88,3 +88,73 @@ ggplot(example2, aes(x = year, fill = spp, color = spp)) +
        title = sp)
 ```
 
+
+
+Add map of specimen count by county/state
+
+devtools::install_github("UrbanInstitute/urbnmapr")
+```{r}
+library(urbnmapr)
+
+# plot states
+states_sf <- get_urbn_map("states", sf = TRUE)
+
+states_sf %>%
+  ggplot() +
+  geom_sf(aes(), 
+          fill = "grey", color = "#ffffff", size = 0.25) +
+  geom_sf_text(data = get_urbn_labels(map = "states", sf = TRUE), 
+                aes(label = state_abbv), size = 3)
+
+# plot counties
+counties_sf <- get_urbn_map("counties", sf = TRUE)
+
+counties_sf %>% 
+  ggplot(aes()) +
+  geom_sf(fill = "grey", color = "#ffffff")
+
+
+### create summary by county/state
+## by state
+statecount <- example2 %>% 
+  count(state) %>% 
+  mutate(state2 = substr(state, 1, 2))
+
+spat_state <- left_join(get_urbn_map(map = "states", sf = TRUE),
+                         statecount,
+                         by = c("state_name" = "state2"))
+
+# plot count by state
+ggplot() +
+  geom_sf(spat_state,
+          mapping = aes(fill = n),
+          color = "#ffffff", size = 0.25) +
+  labs(fill = "Specimen count") +
+  labs(title = paste(sp, "by state", sep = " "))
+
+
+## by county
+countycount <- example2 %>% 
+  count(state, county) %>% 
+  mutate(state2 = substr(state, 1, 2)) %>% 
+  mutate(statecounty = paste(state2, county, sep = "_"))
+
+# need to capitalize and spell out County (County -> CO)
+counties_sf$cty <- toupper(counties_sf$county_name)
+counties_sf$cty2 <- gsub("COUNTY", "CO", counties_sf$cty)
+counties_sf$statecounty <- paste(counties_sf$state_abbv, counties_sf$cty2, sep = "_")
+
+# merge
+spat_county <- left_join(counties_sf,
+                         countycount,
+                         by = "statecounty")
+# plot count by county
+ggplot() +
+  geom_sf(spat_county,
+          mapping = aes(fill = n),
+          color = "#ffffff", size = 0.25) +
+  labs(fill = "Count by county") +
+  labs(title = paste(sp, "by county", sep = " "))
+
+```
+
