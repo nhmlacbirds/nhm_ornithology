@@ -1,0 +1,90 @@
+---
+title: "Explore Ornithology KE EMu database"
+output: html_document
+date: "2022-10-11"
+editor_options: 
+  chunk_output_type: console
+---
+
+Load libraries
+```{r}
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+```
+
+
+
+First install flatfile of EMu database received from Bill at 9/16/2022
+
+```{r}
+data <- read.csv("Birds_Collection.csv")
+
+data <- data %>% 
+  select(Catalog.No, Field.No, Sex, LAF.No, Age, Spec.Nat, Measurements, Gonads, Weight, Collector, Date.Coll, Family, Genus, Species, Subspecies, Continent, Country, State, County, Township, Nearest.Named.Place) %>% 
+  mutate(lacm = Catalog.No,
+         field = Field.No,
+         sex = Sex,
+         laf = LAF.No,
+         age = Age, 
+         specnat = Spec.Nat,
+         measure = Measurements,
+         gonads = Gonads,
+         wt = as.numeric(Weight),
+         coll = Collector,
+         datecoll = Date.Coll,
+         species = paste(Genus, Species, sep = " "),
+         spp = Subspecies,
+         genus = Genus,
+         family = Family,
+         locality = paste(Country, State, County, Township, Nearest.Named.Place, sep = " "),
+         state = State,
+         county = County
+         ) %>% 
+  select(lacm, field, sex, laf, age, specnat, measure, gonads, wt, coll, datecoll, family, species, genus, spp, locality, state, county)
+
+
+# transform date into an actual date category
+data$date <- as.Date(data$datecoll, format="%d %B %Y")
+
+min(data$date, na.rm=T)
+
+data$year <- as.numeric(format(data$date, "%Y"))
+data$month <- as.numeric(format(data$date, "%m"))
+
+# remove odd dates
+data2 <- data %>% filter(date > "1800-01-01")
+```
+
+
+Plot some trends
+```{r}
+sp <- "Buteo jamaicensis"
+
+example <- data2 %>% filter(species == sp)
+
+table(example$year, example$specnat)
+hist(example$date, breaks=20)
+
+example2 <- example %>% 
+  filter(specnat == "SS" | specnat == "SN")
+min(example2$year)
+max(example2$year)
+
+# Histogram based on specimen nature
+ggplot(example2, aes(x = year, fill = specnat, color = specnat)) +
+  geom_histogram(breaks = seq(1880, 2020, by = 10), alpha = 0.5, position="identity") +
+  scale_x_continuous(breaks = seq(1880, 2020, 10)) +
+  theme_classic() +
+  labs(fill = "Specimen type", color = "Specimen type", x = "Year", y = "Count",
+       title = sp)
+
+# Histogram based on subspecies
+ggplot(example2, aes(x = year, fill = spp, color = spp)) +
+  geom_histogram(breaks = seq(1880, 2020, by = 10), alpha = 0.5, position="dodge2") +
+  scale_x_continuous(breaks = seq(1880, 2020, 10)) +
+  theme_classic() +
+  labs(fill = "Subspecies", color = "Subspecies", x = "Year", y = "Count",
+       title = sp)
+```
+
