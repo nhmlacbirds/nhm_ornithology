@@ -1,5 +1,6 @@
 library(shiny)
 library(ggplot2)
+library(tidyverse)
 
 data <- read.csv("Birds_Collection.csv")
 
@@ -27,6 +28,7 @@ data <- data %>%
   select(lacm, field, sex, laf, age, specnat, measure, gonads, wt, coll, datecoll, family, species, genus, spp, locality, state, county)
 
 
+
 # transform date into an actual date category
 data$date <- as.Date(data$datecoll, format="%d %B %Y")
 
@@ -52,7 +54,21 @@ ui <- fluidPage(
 
     titlePanel("Specimen trends and maps"),
     
-    textInput("sp", "Species")
+    textInput("sp", "Species"),
+    
+    fluidRow(
+      column(12, plotOutput("trend"))
+      ),
+    
+    fluidRow(
+      column(12, plotOutput("spp"))
+    ),
+    
+    fluidRow(
+      column(2, tableOutput("countbyyear")),
+      column(3, tableOutput("summary"))
+    )
+
 
 )
 
@@ -60,10 +76,39 @@ server <- function(input, output, session) {
   
   selected <- reactive(data2 %>% filter(species == input$sp))
   
+  output$countbyyear <- renderTable(
+    selected() %>% count(year)
+    )
+    
   output$summary <- renderTable(
     selected() %>% count(year, specnat)
   )
+  
+  trend1 <- reactive({
+    selected() %>% 
+    filter(specnat == "SS" | specnat == "SN")
+  })
+  
+  output$trend <- renderPlot({
+    trend1() %>% 
+      ggplot(aes(x = year, fill = specnat, color = specnat)) +
+      geom_histogram(breaks = seq(1880, 2020, by = 10), alpha = 0.5, position="identity") +
+      scale_x_continuous(breaks = seq(1880, 2020, 10)) +
+      theme_classic() +
+      labs(fill = "Specimen type", color = "Specimen type", x = "Year", y = "Count")
+  
+  }, res = 96)
+  
 
+  output$spp <- renderPlot({
+    selected() %>% 
+      ggplot(aes(x = year, fill = spp, color = spp)) +
+      geom_histogram(breaks = seq(1880, 2020, by = 10), alpha = 0.5, position="dodge2") +
+      scale_x_continuous(breaks = seq(1880, 2020, 10)) +
+      theme_classic() +
+      labs(fill = "Subspecies", color = "Subspecies", x = "Year", y = "Count")
+  }, res = 96)
+  
 }
 
 # Run the application 
