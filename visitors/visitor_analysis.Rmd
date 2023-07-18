@@ -1,0 +1,61 @@
+---
+title: "Visitor log"
+output: html_document
+date: '2023-07-18'
+---
+
+```{r}
+library(readxl)
+library(here)
+library(dplyr)
+library(tidyverse)
+
+mytheme <- theme(   
+  axis.text=element_text(size=14, color="black"),
+  axis.title=element_text(size=16,face="bold",color="black"),
+  legend.text = element_text(size=14, color="black"),
+  legend.title = element_text(size=14, color="black", face="bold"))
+
+
+here::i_am("visitor_analysis.Rmd")
+
+vl <- read_excel(here("Ornithology visitor log.xlsx"))
+```
+
+Rough summaries
+
+```{r}
+table(vl$YEAR)
+```
+```{r}
+dct <- vl %>%                              # Applying group_by & summarise
+  group_by(YEAR) %>%
+  summarise(visitors = n_distinct(VISITOR),
+            inst = n_distinct(AFFILIATION))
+
+dct
+```
+```{r}
+ggplot(dct, aes(x=YEAR, y = visitors)) +
+  geom_bar(stat="identity", width=0.5) +
+  theme_minimal() +
+  labs(title="Number of unique visitors by year", x = "Year", y = "Count") +
+  mytheme
+```
+
+
+```{r}
+library(reshape2)
+
+df <- melt(dct, id.vars = "YEAR")
+df$year <- as.integer(df$YEAR)
+
+ggplot(df, aes(x=year, y=value, fill=variable)) +
+  geom_bar(stat='identity', position='dodge') +
+  theme_minimal() +
+  labs(title="", x = "Year", y = "Count", fill="") +
+  scale_fill_manual(values=c("#fbae29", "#56B4E9"), labels = c("Visitors", "Institutions")) +
+  mytheme +
+  scale_x_continuous(n.breaks = 8)
+```
+
