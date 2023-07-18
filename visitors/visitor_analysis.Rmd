@@ -20,6 +20,7 @@ mytheme <- theme(
 here::i_am("visitor_analysis.Rmd")
 
 vl <- read_excel(here("Ornithology visitor log.xlsx"))
+vl$headcount <- as.numeric(vl$headcount)
 ```
 
 Rough summaries
@@ -57,5 +58,19 @@ ggplot(df, aes(x=year, y=value, fill=variable)) +
   scale_fill_manual(values=c("#fbae29", "#56B4E9"), labels = c("Visitors", "Institutions")) +
   mytheme +
   scale_x_continuous(n.breaks = 8)
+```
+
+Group by category
+
+```{r}
+dct2 <- vl %>%                              
+  group_by(YEAR, Category) %>%
+  summarise(visitors = n_distinct(VISITOR),
+            inst = n_distinct(AFFILIATION),
+            num = sum(headcount))
+
+# num = total number of visitors (not able to differentiate between repeat visitors)
+
+dct2
 ```
 
