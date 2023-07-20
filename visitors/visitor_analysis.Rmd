@@ -65,12 +65,22 @@ Group by category
 ```{r}
 dct2 <- vl %>%                              
   group_by(YEAR, Category) %>%
-  summarise(visitors = n_distinct(VISITOR),
-            inst = n_distinct(AFFILIATION),
-            num = sum(headcount))
-
-# num = total number of visitors (not able to differentiate between repeat visitors)
+  summarise(allvist = n(),
+            uniquevisitors = n_distinct(VISITOR),
+#            inst = n_distinct(AFFILIATION),
+            ct = sum(headcount),
+            total = ct - allvist + uniquevisitors)
 
 dct2
+```
+
+```{r}
+ggplot(dct2, aes(x=YEAR, y=total, fill=Category)) +
+  geom_col(position = position_dodge2(width = 0.9, preserve = "single")) + 
+  theme_minimal() +
+  labs(title="", x = "Year", y = "Number of visitors", fill="Category") +
+  scale_fill_manual(values=c("#fbae29", "#56B4E9", "#56bf72")) +
+  mytheme +
+  scale_x_continuous(n.breaks = 8)
 ```
 
