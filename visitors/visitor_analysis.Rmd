@@ -21,6 +21,9 @@ here::i_am("visitor_analysis.Rmd")
 
 vl <- read_excel(here("Ornithology visitor log.xlsx"))
 vl$headcount <- as.numeric(vl$headcount)
+
+sum(vl$headcount) #978
+978/9 #108.67
 ```
 
 Rough summaries
@@ -72,6 +75,8 @@ dct2 <- vl %>%
             total = ct - allvist + uniquevisitors)
 
 dct2
+
+
 ```
 
 ```{r}
