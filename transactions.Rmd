@@ -1,0 +1,24 @@
+---
+title: "Transactions"
+output: html_document
+date: "2023-07-24"
+---
+
+```{r}
+transac <- read.csv("transactions.csv")
+
+# change date format
+transac$dated <- as.Date(transac$date, format = c("%m/%d/%Y"))
+transac$year <- as.numeric(format(transac$dated,"%Y"))
+```
+
+Might not be useful since a lot of transactions are missing dates... 
+
+```{r}
+ggplot(transac, aes(x=year)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title="Number of specimens moved", x = "Year", y = "Count") +
+  mytheme
+```
+
