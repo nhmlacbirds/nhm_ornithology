@@ -21,4 +21,10 @@ ggplot(transac, aes(x=year)) +
   labs(title="Number of specimens moved", x = "Year", y = "Count") +
   mytheme
 ```
+```{r}
+# filter out 
+ts <- transac[which(transac$year > 2017),]
+table(ts$year)
+86/6 #14
+```
 
