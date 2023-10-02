@@ -61,7 +61,7 @@ Plot some trends
 ```{r}
 sp <- "Buteo jamaicensis"
 
-example <- data2 %>% filter(species == sp)
+example <- data5 %>% filter(species == sp)
 
 table(example$year, example$specnat)
 hist(example$date, breaks=20)
@@ -118,11 +118,20 @@ counties_sf %>%
 ## by state
 statecount <- example2 %>% 
   count(state) %>% 
-  mutate(state2 = substr(state, 1, 2))
+  mutate(state2 = substr(state, 1, 2)) #incorrect
 
 spat_state <- left_join(get_urbn_map(map = "states", sf = TRUE),
                          statecount,
-                         by = c("state_name" = "state2"))
+                         by = c("state_abbv" = "state2"))
+
+# redo - correct 
+statecount2 <- example %>% 
+  count(abv) 
+
+spat_state <- left_join(get_urbn_map(map = "states", sf = TRUE),
+                         statecount2,
+                         by = c("state_abbv" = "abv"))
+
 
 # plot count by state
 ggplot() +
@@ -133,6 +142,7 @@ ggplot() +
   labs(title = paste(sp, "by state", sep = " "))
 
 
+########################
 ## by county
 countycount <- example2 %>% 
   count(state, county) %>% 
@@ -148,6 +158,30 @@ counties_sf$statecounty <- paste(counties_sf$state_abbv, counties_sf$cty2, sep =
 spat_county <- left_join(counties_sf,
                          countycount,
                          by = "statecounty")
+
+### works now 
+# re-do within dataset
+example2$cty <- str_to_title(example2$county) 
+example2$cty2 <- gsub(" Co", " County", example2$cty)
+countycount2 <- example2 %>% 
+  count(cty2)
+
+table(example2$cty2)
+table(counties_sf$county_name)
+
+counties_sf_ca <- get_urbn_map("counties", sf = TRUE) %>% 
+  filter(state_abbv == "CA")
+
+table(example2$cty2)
+table(counties_sf_ca$county_name)
+
+
+spat_county <- left_join(counties_sf_ca,
+                         countycount2,
+                         by = c("county_name"="cty2"))
+
+###
+
 # plot count by county
 ggplot() +
   geom_sf(spat_county,
@@ -155,6 +189,42 @@ ggplot() +
           color = "#ffffff", size = 0.25) +
   labs(fill = "Count by county") +
   labs(title = paste(sp, "by county", sep = " "))
+
+```
+
+Plot by county just WITHIN CALIFORNIA
+```{r}
+cali <- spat_county %>% filter(state_abbv == "CA")
+
+ggplot() +
+  geom_sf(cali,
+          mapping = aes(fill = n),
+          color = "#ffffff", size = 0.25) +
+  labs(fill = "Count by county") +
+  labs(title = paste(sp, "by CA county", sep = " "))
+```
+
+
+
+# Next steps 
+Within LA County -> plot points / plot by cities / plot major 5 counties surrounding LA
+Plot georeferences points ->note those that don't have georeference
+table of total number of specimen types/sex/other fields.. 
+
+
+```{r}
+table(data$specnat)
+```
+
+
+Of the specimens we have, which one has the largest sampling area (by state #)?
+
+```{r}
+d <- data5 %>% 
+  group_by(species) %>% 
+  summarize(n = n(),
+            count = n_distinct(abv))
+
 
 ```
 

@@ -89,17 +89,25 @@ server <- function(input, output, session) {
     filter(specnat == "SS" | specnat == "SN")
   })
   
+  # output$trend <- renderPlot({
+  #   trend1() %>% 
+  #     ggplot(aes(x = year, fill = specnat, color = specnat)) +
+  #     geom_histogram(breaks = seq(1880, 2020, by = 10), alpha = 0.5, stat="identity", position="dodge") +
+  #     scale_x_continuous(breaks = seq(1880, 2020, 10)) +
+  #     theme_classic() +
+  #     labs(fill = "Specimen type", color = "Specimen type", x = "Year", y = "Count")
+  # 
   output$trend <- renderPlot({
     trend1() %>% 
       ggplot(aes(x = year, fill = specnat, color = specnat)) +
-      geom_histogram(breaks = seq(1880, 2020, by = 10), alpha = 0.5, position="identity") +
+      geom_bar(position = position_dodge(preserve = "single")) +
       scale_x_continuous(breaks = seq(1880, 2020, 10)) +
       theme_classic() +
       labs(fill = "Specimen type", color = "Specimen type", x = "Year", y = "Count")
-  
+    
   }, res = 96)
   
-
+  
   output$spp <- renderPlot({
     selected() %>% 
       ggplot(aes(x = year, fill = spp, color = spp)) +

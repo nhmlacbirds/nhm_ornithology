@@ -10,6 +10,17 @@ transac <- read.csv("transactions.csv")
 # change date format
 transac$dated <- as.Date(transac$date, format = c("%m/%d/%Y"))
 transac$year <- as.numeric(format(transac$dated,"%Y"))
+
+table(transac$year)
+
+ts <- transac %>%                              
+  group_by(year) %>%
+  summarise(count = n(),
+            uni_rec = n_distinct(recipient),
+            specimens = sum(n_specimen)
+  )
+
+ts
 ```
 
 Might not be useful since a lot of transactions are missing dates... 

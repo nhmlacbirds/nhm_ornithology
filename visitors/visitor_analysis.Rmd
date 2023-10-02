@@ -31,6 +31,7 @@ Rough summaries
 ```{r}
 table(vl$YEAR)
 ```
+
 ```{r}
 dct <- vl %>%                              # Applying group_by & summarise
   group_by(YEAR) %>%
@@ -38,7 +39,14 @@ dct <- vl %>%                              # Applying group_by & summarise
             inst = n_distinct(AFFILIATION))
 
 dct
+
+
+wotour <- dct2 %>% 
+  filter(Category != "Tour")
+wotour
 ```
+
+
 ```{r}
 ggplot(dct, aes(x=YEAR, y = visitors)) +
   geom_bar(stat="identity", width=0.5) +
@@ -70,7 +78,7 @@ dct2 <- vl %>%
   group_by(YEAR, Category) %>%
   summarise(allvist = n(),
             uniquevisitors = n_distinct(VISITOR),
-#            inst = n_distinct(AFFILIATION),
+            inst = n_distinct(AFFILIATION),
             ct = sum(headcount),
             total = ct - allvist + uniquevisitors)
 
