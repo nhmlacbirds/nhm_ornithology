@@ -1,0 +1,38 @@
+---
+title: "CWC data"
+output: html_document
+date: "2023-10-02"
+---
+
+Explore CWC data for a presentation in October 2023
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(here)
+
+mytheme <- theme(   
+  axis.text=element_text(size=14, color="black"),
+  axis.title=element_text(size=16,face="bold",color="black"),
+  legend.text = element_text(size=14, color="black"),
+  legend.title = element_text(size=14, color="black", face="bold"))
+```
+
+Load data
+```{r}
+here::i_am("cwc_metadata.Rmd")
+
+cwc <- read.csv("cwc2023.csv")
+```
+
+```{r}
+cwc$year <- as.numeric(cwc$Year)
+hist(cwc$year)
+
+ggplot(cwc, aes(x=year)) +
+  geom_histogram(colour="black", fill="lightgreen") +
+  theme_classic() +
+  labs(title="Number of cataloged specimens from CWC", x = "Year", y = "Count") +
+  mytheme
+```
+

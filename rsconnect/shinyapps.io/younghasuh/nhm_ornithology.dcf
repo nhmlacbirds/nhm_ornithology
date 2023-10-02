@@ -1,0 +1,14 @@
+name: nhm_ornithology
+title: nhm_ornithology
+username:
+account: younghasuh
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 8556677
+bundleId: 7085962
+url: https://younghasuh.shinyapps.io/nhm_ornithology/
+when: 1681407673.72623
+lastSyncTime: 1681407673.72625
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: collections_data_processing.R|list.csv|list2.csv|MBF_to_HM_translation.csv|neiss/injuries.tsv.gz|neiss/population.tsv|neiss/products.tsv|PETERS_DATABASE_version_1.csv|prum_tree.nex|README.md|script.Rmd|test/app.R|test/Birds_Collection.csv

@@ -1,0 +1,35 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(stringi)
+```
+
+Try to generate a random string
+```{r}
+id <- sample(unique(do.call(paste0, 
+                            Map(stri_rand_strings, n=60000, length=c(3,2),
+                                pattern = c('[0-9]','[A-Z]')))), 50000)
+
+head(id)
+
+# add ORN at start of string
+id2 <- paste("O", id, sep="")
+head(id2)
+
+# confirm that all are unique values
+length(unique(id2))
+
+id_p1 <- id2[1:20000]
+id_p2 <- id2[20001:40000]
+
+# export as CSV file
+write.csv(id_p1, "list.csv")
+write.csv(id_p2, "list2.csv")
+
+```
+
+
