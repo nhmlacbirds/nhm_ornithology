@@ -36,3 +36,20 @@ ggplot(cwc, aes(x=year)) +
   mytheme
 ```
 
+```{r}
+ggplot(cwc, aes(x=year, fill=Family)) +
+  geom_histogram() +
+  theme_classic() +
+  labs(title="Number of cataloged specimens from CWC", x = "Year", y = "Count") +
+  mytheme
+
+```
+
+```{r}
+ggplot(cwc, aes(x=year, fill=Order)) +
+  geom_histogram() +
+  theme_classic() +
+  labs(title="Number of cataloged specimens from CWC", x = "Year", y = "Count") +
+  mytheme
+
+```
