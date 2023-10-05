@@ -37,6 +37,7 @@ remove(data)
 
 ```{r}
 library(stringr)
+library(tidyverse)
 
 # all cat'd specimens by collector
 dat1 <- dat %>% 
@@ -51,7 +52,7 @@ dat2 <- dat %>%
 
 
 # filter out orgs
-orgs <- dat2 %>% 
+orgs <- dat %>% 
   filter(coll == "SAN DIEGO ZOOLOGICAL SOCIETY" |
            coll == "CALIFORNIA WILDLIFE CENTER" |
            coll == "WETLANDS AND WILDLIFE CARE CENTER" | 
@@ -78,7 +79,8 @@ orgs <- dat2 %>%
            coll == "SAN DIEGO ZOO" | #
            coll == "SEA & SAGE AUDUBON SOCIETY" |
            coll == "WETLANDS & WILDLIFE CARE" | #
-           coll == "PASADENA HUMANE SOCIETY")
+           coll == "PASADENA HUMANE SOCIETY")%>% 
+  mutate(year = str_sub(datecoll, -4, -1))
 
 orgs$coll2 <- orgs$coll
 orgs$coll2[which(orgs$coll == "WETLANDS AND WILDLIFE CARE")] <- "WETLANDS AND WILDLIFE CARE CENTER"
@@ -145,11 +147,39 @@ ggsave('topdonors.png', width=11, height=5)
 
 
 ```{r}
-orgs_sum2 <- orgs %>% 
+orgs2 <- orgs %>% 
   group_by(coll2) %>% 
-  summarize(n = n())
+  filter(n() > 100) %>% 
+  group_by(coll2, year) %>% 
+  summarize(n=n()) 
 
-orgs_sum$n <- as.numeric(orgs_sum$n)
+orgs2$yr <- as.numeric(orgs2$year)
+
+# plot by year
+ggplot(orgs2, aes(x=year, y=n, fill=factor(ifelse(coll2=="CALIFORNIA WILDLIFE CENTER", "hl", "no")))) +
+  geom_col(position=position_dodge2(preserve="single", width=6), color="black", show.legend = F) +
+  scale_fill_manual(name="coll2", values=c("red", "grey70"))+
+  xlim(2000,2021) +
+  ylim(0,100) + 
+  theme_classic() +
+  theme(
+    axis.text=element_text(size=14, color="black"),
+    axis.title=element_blank())
+
+# plot by year
+ggplot(orgs2, aes(x=year, y=n, fill=factor(ifelse(coll2=="CALIFORNIA WILDLIFE CENTER", "CWC", "Others")))) +
+  geom_col(position=position_dodge2(preserve="single", width=6), color="black", show.legend = T) +
+  scale_fill_manual(name="coll2", values=c("red", "grey70"))+
+  ylim(0,100) + 
+  theme_classic() +
+  theme(
+    axis.text=element_text(size=14, color="black"),
+    axis.title=element_text(size=14, color="black"),
+    legend.text = element_text(size=14),
+    legend.title = element_blank()) +
+  scale_x_continuous(name="year", limits = c(2010,2021), breaks = seq(2010,2021))
+
+ggsave('topdonors-byyear.png', width=11, height=5)
 ```
 
 
