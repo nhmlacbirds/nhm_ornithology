@@ -1,0 +1,155 @@
+---
+title: "Untitled"
+author: "YS"
+date: "2023-10-05"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+dat <- data %>% 
+  select(Catalog.No, Field.No, Sex, LAF.No, Age, Spec.Nat, Measurements, Gonads, Weight, Collector, Date.Coll, Family, Genus, Species, Subspecies, Continent, Country, State, County, Township, Nearest.Named.Place) %>% 
+  mutate(lacm = Catalog.No,
+         field = Field.No,
+         sex = Sex,
+         laf = LAF.No,
+         age = Age, 
+         specnat = Spec.Nat,
+         measure = Measurements,
+         gonads = Gonads,
+         wt = as.numeric(Weight),
+         coll = Collector,
+         datecoll = Date.Coll,
+         species = paste(Genus, Species, sep = " "),
+         spp = Subspecies,
+         genus = Genus,
+         family = Family,
+         locality = paste(Country, State, County, Township, Nearest.Named.Place, sep = " "),
+         state = State,
+         county = County
+         ) %>% 
+  select(lacm, field, sex, laf, age, specnat, measure, gonads, wt, coll, datecoll, family, species, genus, spp, locality, state, county)
+
+remove(data)
+```
+
+
+```{r}
+library(stringr)
+
+# all cat'd specimens by collector
+dat1 <- dat %>% 
+  group_by(coll) %>% 
+  summarise(n=n())
+
+# all cat'd specimens by collector + year
+dat2 <- dat %>% 
+  mutate(year = str_sub(datecoll, -4, -1)) %>% 
+  group_by(year, coll) %>% 
+  summarise(n=n())
+
+
+# filter out orgs
+orgs <- dat2 %>% 
+  filter(coll == "SAN DIEGO ZOOLOGICAL SOCIETY" |
+           coll == "CALIFORNIA WILDLIFE CENTER" |
+           coll == "WETLANDS AND WILDLIFE CARE CENTER" | 
+           coll == "CALIF DEPT AGRICULTURE" |
+           coll == "LOS ANGELES ZOO" |
+           coll == "ANDERSEN, V" | #
+           coll == "BLOOM, P H" | #
+           coll == "USFWS" | #
+           coll == "U S FISH & WILDLIFE" |
+           coll == "INTERNATIONAL BIRD RESCUE" |
+           coll == "GRIFFITH WILDLIFE BIOLOGY" |
+           coll == "CALIF DEPT FISH & GAME" |
+           coll == "WETLANDS AND WILDLIFE CARE" | #
+           coll == "SUNCOAST SEABIRD SANCTUARY" |
+           coll == "PRBO" | #
+           coll == "SEA WORLD SAN DIEGO" |
+           coll == "U S FISH & WILDLIFE SERVICE" | #
+           coll == "MANOMET BIRD OBSERVATORY" |
+           coll == "P R B O" | #
+           coll == "U S FOREST SERVICE" |
+           coll == "SEA WORLD" |
+           coll == "L A AUDUBON SOCIETY" |
+           coll == "SEA AND SAGE AUDUBON" |
+           coll == "SAN DIEGO ZOO" | #
+           coll == "SEA & SAGE AUDUBON SOCIETY" |
+           coll == "WETLANDS & WILDLIFE CARE" | #
+           coll == "PASADENA HUMANE SOCIETY")
+
+orgs$coll2 <- orgs$coll
+orgs$coll2[which(orgs$coll == "WETLANDS AND WILDLIFE CARE")] <- "WETLANDS AND WILDLIFE CARE CENTER"
+orgs$coll2[which(orgs$coll == "WETLANDS & WILDLIFE CARE")] <- "WETLANDS AND WILDLIFE CARE CENTER"
+orgs$coll2[which(orgs$coll == "ANDERSEN, V")] <- "SONGBIRD CARE AND EDUCATION CENTER"
+orgs$coll2[which(orgs$coll == "BLOOM, P H")] <- "BLOOM BIOLOGICAL INC"
+orgs$coll2[which(orgs$coll == "SAN DIEGO ZOO")] <- "SAN DIEGO ZOOLOGICAL SOCIETY"
+orgs$coll2[which(orgs$coll == "BLOOM, P H")] <- "BLOOM BIOLOGICAL INC"
+orgs$coll2[which(orgs$coll == "USFWS")] <- "U S FISH & WILDLIFE"
+orgs$coll2[which(orgs$coll == "U S FISH & WILDLIFE SERVICE")] <- "U S FISH & WILDLIFE"
+orgs$coll2[which(orgs$coll == "PRBO")] <- "POINT REYES BIRD OBSERVATORY"
+orgs$coll2[which(orgs$coll == "P R B O")] <- "POINT REYES BIRD OBSERVATORY"
+orgs$coll2[which(orgs$coll == "SEA & SAGE AUDUBON SOCIETY")] <- "SEA AND SAGE AUDUBON"
+orgs$coll2[which(orgs$coll == "SEA WORLD")] <- "SEA WORLD SAN DIEGO"
+
+orgs_sum <- orgs %>% 
+  group_by(coll2) %>% 
+  summarize(n = n())
+
+orgs_sum$n <- as.numeric(orgs_sum$n)
+
+ggplot(orgs_sum, aes(x=reorder(coll2, -n),n)) +
+  geom_bar(stat="identity") + 
+  theme_classic() + 
+  theme(axis.text.x = element_text(angle = 60, hjust=1)) +
+  theme(   
+  axis.text=element_text(size=10, color="black"),
+  axis.title=element_blank())
+
+
+ggplot(orgs_sum, aes(x=reorder(coll2, -n),n, fill=factor(ifelse(coll2=="CALIFORNIA WILDLIFE CENTER", "hl", "no")))) +
+  geom_bar(stat="identity", show.legend = F) + 
+  scale_fill_manual(name="coll2", values = c("red", "grey50")) +
+  theme_classic() +
+  theme(
+    axis.text.x = element_text(angle = 60, hjust=1),
+    axis.text=element_text(size=10, color="black"),
+    axis.title=element_blank())
+
+# swap X and y axis
+ggplot(orgs_sum, aes(x=reorder(coll2, -n),n, fill=factor(ifelse(coll2=="CALIFORNIA WILDLIFE CENTER", "hl", "no")))) +
+  geom_bar(stat="identity", show.legend = F) + 
+  scale_fill_manual(name="coll2", values = c("red", "grey50")) +
+  theme_classic() +
+  theme(
+    axis.text.x = element_text(angle = 60, hjust=1),
+    axis.text=element_text(size=10, color="black"),
+    axis.title=element_blank()) +
+  coord_flip()
+
+ggplot(orgs_sum, aes(x=reorder(coll2, n),n, fill=factor(ifelse(coll2=="CALIFORNIA WILDLIFE CENTER", "hl", "no")))) +
+  geom_bar(stat="identity", show.legend = F) + 
+  scale_fill_manual(name="coll2", values = c("red", "grey50")) +
+  theme_classic() +
+  theme(
+    axis.text=element_text(size=10, color="black"),
+    axis.title=element_blank()) +
+  coord_flip() +
+  geom_text(aes(label = n), hjust = 0)
+
+ggsave("topdonors.png", plot = last_plot(), dpi = 200, width = 1600, height = 800, units = "px")
+ggsave('topdonors.png', width=11, height=5)
+```
+
+
+```{r}
+orgs_sum2 <- orgs %>% 
+  group_by(coll2) %>% 
+  summarize(n = n())
+
+orgs_sum$n <- as.numeric(orgs_sum$n)
+```
+
+
