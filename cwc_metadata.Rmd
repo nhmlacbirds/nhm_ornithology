@@ -2,6 +2,8 @@
 title: "CWC data"
 output: html_document
 date: "2023-10-02"
+editor_options: 
+  chunk_output_type: console
 ---
 
 Explore CWC data for a presentation in October 2023
@@ -23,19 +25,69 @@ Load data
 here::i_am("cwc_metadata.Rmd")
 
 cwc <- read.csv("cwc2023.csv")
+
+cwc$genus <- gsub( " .*$", "", cwc$Taxon)
+cwc$genus <- word(cwc$Taxon, 1)
+cwc$species <- word(cwc$Taxon, 2)
+cwc$name <- paste(cwc$genus, cwc$species, sep = " ")
 ```
 
+# plot by order
+```{r}
+table(cwc$Order)
+table(cwc$Family)
+
+# most common species by order
+table(cwc[which(cwc$Order == "Passeriformes"),]$name)
+which.max(table(cwc[which(cwc$Order == "Passeriformes"),]$name))
+
+table(cwc[which(cwc$Order == "Charadriiformes"),]$name)
+which.max(table(cwc[which(cwc$Order == "Charadriiformes"),]$name))
+
+table(cwc[which(cwc$Order == "Piciformes"),]$name)
+which.max(table(cwc[which(cwc$Order == "Piciformes"),]$name))
+
+table(cwc[which(cwc$Order == "Accipitriformes"),]$name)
+which.max(table(cwc[which(cwc$Order == "Accipitriformes"),]$name))
+
+which.max(table(cwc[which(cwc$Order == "Pelecaniformes"),]$name))
+
+
+ggplot(cwc, aes(x=Order)) +
+  geom_histogram(stat="count", colour="black", fill="lightgreen") +
+  theme_classic() +
+  labs(title="Number of cataloged specimens from CWC", x = "Order", y = "Count") +
+  mytheme +
+  theme(axis.text.x = element_text(angle = 60, hjust=1)) 
+
+# order by largest to smallest
+cwcsum <- cwc %>%   
+  group_by(Order) %>% 
+  summarize(n = n())
+
+ggplot(cwcsum, aes(x=reorder(Order, -n),n)) +
+  geom_bar(stat="identity")  +
+  theme_classic() +
+  theme(
+    axis.text.x = element_text(angle = 60, hjust=1),
+    axis.text=element_text(size=12, color="black"),
+    axis.title=element_blank())
+```
+
+
+# plot by year
 ```{r}
 cwc$year <- as.numeric(cwc$Year)
 hist(cwc$year)
 
 ggplot(cwc, aes(x=year)) +
-  geom_histogram(colour="black", fill="lightgreen") +
+ geom_bar(stat="identity") +
   theme_classic() +
   labs(title="Number of cataloged specimens from CWC", x = "Year", y = "Count") +
-  mytheme
+  mytheme 
 ```
 
+# Plot by year and split by family
 ```{r}
 ggplot(cwc, aes(x=year, fill=Family)) +
   geom_histogram() +
@@ -45,6 +97,7 @@ ggplot(cwc, aes(x=year, fill=Family)) +
 
 ```
 
+# Plot by year and split by order
 ```{r}
 ggplot(cwc, aes(x=year, fill=Order)) +
   geom_histogram() +
