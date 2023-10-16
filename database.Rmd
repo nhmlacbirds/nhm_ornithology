@@ -39,9 +39,12 @@ data <- data %>%
          family = Family,
          locality = paste(Country, State, County, Township, Nearest.Named.Place, sep = " "),
          state = State,
-         county = County
+         county = County,
+         country = Country,
+         continent = Continent
          ) %>% 
-  select(lacm, field, sex, laf, age, specnat, measure, gonads, wt, coll, datecoll, family, species, genus, spp, locality, state, county)
+  select(lacm, field, sex, laf, age, specnat, measure, gonads, wt, coll, datecoll, family, species, genus, spp, locality, state, county, country, continent)
+
 
 
 # transform date into an actual date category
@@ -54,7 +57,107 @@ data$month <- as.numeric(format(data$date, "%m"))
 
 # remove odd dates
 data2 <- data %>% filter(date > "1800-01-01")
+
+dat <- data
 ```
+
+
+Relative frequencies
+```{r}
+table(dat$family)
+length(unique(dat$family)) #159 families
+which.max(table(dat$family)) #Emberizidae
+
+table(dat$specnat)
+
+spectype <- dat %>% 
+  group_by(specnat) %>% 
+  summarise(n = n()) %>% 
+  mutate(rel.freq = paste0(round(100* n/sum(n), 0), "%"))
+
+
+fam <- dat %>% 
+  group_by(family) %>% 
+  summarise(n = n()) %>%
+  mutate(rel.freq = paste0(round(100 * n/sum(n), 0), "%"))
+
+# relative to species per family? 
+length(unique(dat$species)) #5660
+
+```
+
+
+         AC    AL    AO    BM    FA    FB    FS    KB    MS    PS    SA    SK    SN    SO    SS    SW    TI    WO    WT 
+   33    11  2872    15  1497    79  2063   126   989    62   417     7   214 15699   554 98160     3   794   133     2 
+
+Frequencies by country
+```{r}
+# County
+table(dat$country)
+
+ctry <- dat %>% 
+  group_by(country) %>% 
+  summarise(n = n()) %>% 
+  mutate(rel.freq = paste0(round(100* n/sum(n), 0), "%"))
+
+# Continent
+table(dat$continent)
+
+cont <- dat %>% 
+  group_by(continent) %>% 
+  summarise(n = n()) %>% 
+  mutate(rel.freq = paste0(round(100* n/sum(n), 0), "%"))
+
+```
+
+
+Frequenceis by time period
+```{r}
+dat2 <- dat %>% 
+      mutate(Decade = as.numeric(year) - as.numeric(year) %% 10)
+
+ggplot(dat2, aes(x=Decade)) +
+  geom_histogram(binwidth = 3) + 
+  theme_classic() +
+  scale_x_continuous(name="year", limits = c(1870,2030), breaks = seq(1870,2030, by=10))
+
+# by decade and continent
+dat3 <- dat2 %>% 
+  group_by(Decade, continent) %>% 
+  summarize(n=n()) 
+
+ggplot(dat3, aes(x=Decade, y=n, fill=continent)) +
+  geom_col(position=position_dodge2(preserve="single", width=6), color="black", show.legend = T) +
+  theme_classic() +
+  theme(
+    axis.text=element_text(size=14, color="black"),
+    axis.title=element_text(size=14, color="black"),
+    legend.text = element_text(size=14),
+    legend.title = element_blank()) +
+  scale_x_continuous(name="year", limits = c(1870,2020), breaks = seq(1870,2030, by=10))
+
+# remove non-continents
+dat4 <- dat3 %>% 
+  filter(continent == "AFRICA" | continent == "EUROPE" | continent == "ASIA" | continent == "AUSTRALIA"
+         | continent == "EUROPE" | continent == "NORTH AMERICA" | continent == "SOUTH AMERICA" | continent == "ANTARCTICA")
+
+cbpal  <- c("#E69F00", "#56B4E9", "#009E73", 
+                       "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+ggplot(dat4, aes(x=Decade, y=n, fill=continent)) +
+  geom_col(position=position_dodge2(preserve="single", width=6), color="black", show.legend = T) +
+  scale_fill_manual(name="continent", values=cbpal) +
+  theme_classic() +
+  theme(
+    axis.text=element_text(size=14, color="black"),
+    axis.title=element_text(size=14, color="black"),
+    legend.text = element_text(size=14),
+    legend.title = element_blank()) +
+  scale_x_continuous(name="Decades", limits = c(1870,2020), breaks = seq(1870,2030, by=10)) +
+  ylab("Count")
+
+```
+
 
 
 Plot some trends

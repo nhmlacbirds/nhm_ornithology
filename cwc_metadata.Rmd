@@ -52,6 +52,10 @@ which.max(table(cwc[which(cwc$Order == "Accipitriformes"),]$name))
 
 which.max(table(cwc[which(cwc$Order == "Pelecaniformes"),]$name))
 
+which.max(table(cwc[which(cwc$Order == "Caprimulgiformes"),]$name))
+which.max(table(cwc[which(cwc$Order == "Apodiformes"),]$name))
+which.max(table(cwc[which(cwc$Order == "Strigiformes"),]$name))
+
 
 ggplot(cwc, aes(x=Order)) +
   geom_histogram(stat="count", colour="black", fill="lightgreen") +
@@ -71,7 +75,8 @@ ggplot(cwcsum, aes(x=reorder(Order, -n),n)) +
   theme(
     axis.text.x = element_text(angle = 60, hjust=1),
     axis.text=element_text(size=12, color="black"),
-    axis.title=element_blank())
+    axis.title=element_blank()) +
+  scale_y_continuous(breaks=seq(0, 600, by=100))
 ```
 
 
