@@ -1,0 +1,59 @@
+---
+title: "Untitled"
+author: "YS"
+date: "2024-02-01"
+output: html_document
+---
+
+```{r}
+library(here)
+library(tidyverse)
+library(readxl)
+```
+
+```{r}
+here::i_am("taxonomyupdate.Rmd")
+here()
+```
+
+Load LACM list
+
+```{r}
+lacm <- read_excel("lacmtaxonomy.xlsx", col_names = c("catlog", "order", "family", "genus", "species", "subspecies", "rank", "sciname"), skip=1)
+
+ltax <- unique(lacm$sciname) #5667; some subspecies don't have a species level entry
+
+# get list of unique species + add family and order
+lacmlist <- lacm[!duplicated(lacm[,"sciname"]),] %>% select(sciname, genus, species, family, order)
+```
+
+Load IOC list for comparison; want to update lacm list to IOC 
+
+```{r}
+ioc <- read_excel("taxlists.xlsx")
+ioc2 <- ioc %>% 
+ filter(rank == "species") #only filter out at species level, not subspecies
+
+iocsub <- ioc[,1:12] #only the first 12 columns
+
+comp <- lacmlist 
+```
+
+
+Seems like some subspecies got split; 
+```{r}
+new <- lacmlist %>% 
+  left_join(mbf_hm_translation, by=c("genus"="Genus_MBF","species"="Species_MBF")) %>% 
+  filter(!is.na(ORDER_MBF)) #n=6023
+```
+
+
+Deal with subspecies
+```{r}
+lacm0 <- lacm %>% filter(subspecies != "ssp")
+
+lacm0$spp <- paste(lacm0$genus, lacm0$species, lacm0$subspecies, sep=" ")
+
+lacmlist0 <- lacm0[!duplicated(lacm0[,"spp"]),] %>% select(spp, sciname, genus, species, family, order) #7634
+```
+
