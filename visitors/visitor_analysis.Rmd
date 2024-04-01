@@ -22,8 +22,7 @@ here::i_am("visitor_analysis.Rmd")
 vl <- read_excel(here("Ornithology visitor log.xlsx"))
 vl$headcount <- as.numeric(vl$headcount)
 
-sum(vl$headcount) #978
-978/9 #108.67
+sum(vl$headcount) #1208
 ```
 
 Rough summaries
@@ -36,7 +35,8 @@ table(vl$YEAR)
 dct <- vl %>%                              # Applying group_by & summarise
   group_by(YEAR) %>%
   summarise(visitors = n_distinct(VISITOR),
-            inst = n_distinct(AFFILIATION))
+            inst = n_distinct(AFFILIATION),
+            totalvisitor = sum(headcount))
 
 dct
 
@@ -48,11 +48,11 @@ wotour
 
 
 ```{r}
-ggplot(dct, aes(x=YEAR, y = visitors)) +
+ggplot(dct, aes(x=year, y = visitors)) +
   geom_bar(stat="identity", width=0.5) +
   theme_minimal() +
   labs(title="Number of unique visitors by year", x = "Year", y = "Count") +
-  mytheme
+  mytheme 
 ```
 
 
@@ -68,8 +68,10 @@ ggplot(df, aes(x=year, y=value, fill=variable)) +
   labs(title="", x = "Year", y = "Count", fill="") +
   scale_fill_manual(values=c("#fbae29", "#56B4E9"), labels = c("Visitors", "Institutions")) +
   mytheme +
-  scale_x_continuous(n.breaks = 8)
+  scale_x_continuous(n.breaks = 10)
 ```
+
+, labels = c("2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023")
 
 Group by category
 
@@ -96,4 +98,24 @@ ggplot(dct2, aes(x=YEAR, y=total, fill=Category)) +
   mytheme +
   scale_x_continuous(n.breaks = 8)
 ```
+
+% Increase in visitor count since Sep 2018
+
+```{r}
+vl$date <- as.Date(as.numeric(vl$DATE), origin = "1899-12-30")
+
+# by visitor count
+table(vl$YEAR)
+
+(53+53+63+60)/4 #57.25
+(31+11+13+47+69)/5 #34.2
+(31+47+69)/3 #49
+
+
+## institution
+ins <- df[which(df$variable=="inst"),]
+
+```
+
+
 
