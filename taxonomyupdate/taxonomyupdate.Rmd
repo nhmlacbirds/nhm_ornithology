@@ -40,7 +40,7 @@ translat <- read_excel("peters_clements.xlsx")
 translat$genus_pet <- sub(" .*", "", translat$peters)
 
 translat$species_pet <- sub(" [^ ]+$|^.*? ", "", translat$peters)
-translat$species_pet <- sub(" .*", "", translat$species_pet)
+#translat$species_pet <- sub(" .*", "", translat$species_pet)
 
 
 # left join 
@@ -48,13 +48,27 @@ upd <- lacmlist %>%  #5667
   left_join(translat, by=c("genus" = "genus_pet", "species" = "species_pet")) %>% 
   distinct(sciname, .keep_all = TRUE)
 
-upd2 <- translat %>% 
-  left_join(lacmlist, by=c("genus_pet" ="genus", "species_pet" = "species"))
-```
+upd$genus_clements <- sub(" .*", "", upd$clements)
+upd$species_clements <- sub(" [^ ]+$|^.*? ", "", upd$clements)
+# how to deal with subspecies
 
-bird_raw <- bird_raw %>%
-  left_join(mbf_hm_translation,by=c("Genus"="Genus_MBF","Species"="Species_MBF")) %>%
-  distinct(DB_Internal_Rec_No,.keep_all=T)
+upd$name_match <- ifelse(upd$clements == upd$peters, "match", "no")
+upd$genus_match <- ifelse(upd$genus_clements == upd$genus, "match", "no")
+upd$species_match <- ifelse(upd$species_clements == upd$species, "match", "no")
+
+
+upd2 <- upd %>% 
+  mutate(emu_order = order,
+         emu_family = family,
+         emu_genus = genus,
+         emu_species = species,
+         emu_subspecies = subspecies,
+         new_order = order_clements,
+         new_family = family_clements,
+         new_genus = genus_clements,
+         new_species = species_clements)
+  select()
+```
 
 
 
