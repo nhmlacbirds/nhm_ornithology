@@ -28,6 +28,8 @@ lacmlist <- lacm[!duplicated(lacm[,"sciname"]),] %>% select(sciname, subspecies,
 
 
 write.csv(lacmlist, "lacm_species2.csv")
+
+lacmlist <- read.csv("lacm_species2.csv")
 ```
 
 
@@ -43,7 +45,8 @@ translat$species_pet <- sub(" .*", "", translat$species_pet)
 
 # left join 
 upd <- lacmlist %>%  #5667 
-  left_join(translat, by=c("genus" = "genus_pet", "species" = "species_pet"))
+  left_join(translat, by=c("genus" = "genus_pet", "species" = "species_pet")) %>% 
+  distinct(sciname, .keep_all = TRUE)
 
 upd2 <- translat %>% 
   left_join(lacmlist, by=c("genus_pet" ="genus", "species_pet" = "species"))
