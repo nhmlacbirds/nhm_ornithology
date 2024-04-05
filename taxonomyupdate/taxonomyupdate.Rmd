@@ -24,9 +24,45 @@ lacm <- read_excel("lacmtaxonomy.xlsx", col_names = c("catlog", "order", "family
 ltax <- unique(lacm$sciname) #5667; some subspecies don't have a species level entry
 
 # get list of unique species + add family and order
-lacmlist <- lacm[!duplicated(lacm[,"sciname"]),] %>% select(sciname, genus, species, family, order)
+lacmlist <- lacm[!duplicated(lacm[,"sciname"]),] %>% select(sciname, subspecies, genus, species, family, order)
+
+
+write.csv(lacmlist, "lacm_species2.csv")
 ```
 
+
+```{r}
+translat <- read_excel("peters_clements.xlsx")
+
+# separate genus and species
+translat$genus_pet <- sub(" .*", "", translat$peters)
+
+translat$species_pet <- sub(" [^ ]+$|^.*? ", "", translat$peters)
+translat$species_pet <- sub(" .*", "", translat$species_pet)
+
+
+# left join 
+upd <- lacmlist %>%  #5667 
+  left_join(translat, by=c("genus" = "genus_pet", "species" = "species_pet"))
+
+upd2 <- translat %>% 
+  left_join(lacmlist, by=c("genus_pet" ="genus", "species_pet" = "species"))
+```
+
+bird_raw <- bird_raw %>%
+  left_join(mbf_hm_translation,by=c("Genus"="Genus_MBF","Species"="Species_MBF")) %>%
+  distinct(DB_Internal_Rec_No,.keep_all=T)
+
+
+
+
+
+
+
+
+
+
+# old
 Load IOC list for comparison; want to update lacm list to IOC 
 
 ```{r}
