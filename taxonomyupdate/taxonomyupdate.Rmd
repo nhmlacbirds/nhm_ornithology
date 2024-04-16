@@ -11,6 +11,7 @@ editor_options:
 library(here)
 library(tidyverse)
 library(readxl)
+library(stringi)
 ```
 
 ```{r}
@@ -55,6 +56,10 @@ n_distinct(lacmlist$fullname) #11119
 ```{r}
 translat <- read_excel("peters_clements.xlsx")
 
+translat$ct_pet <- stri_count(translat$peters, regex="\\S+")
+translat$ct_clements <- stri_count(translat$clements, regex="\\S+")
+
+
 ## separate genus and species
 # separate genus
 translat$genus_pet <- sub(" .*", "", translat$peters)
@@ -64,14 +69,15 @@ translat$species_pet <- sub(" [^ ]+$|^.*? ", "", translat$peters)
 translat$species_pet <- sub(" .*", "", translat$species_pet)
 
 # extract subspecies
-translat$ssp_pet <- ifelse(translat$io_rank == "ssp", sub(".* ", "", translat$peters), "NA")
+translat$ssp_pet <- ifelse(translat$ct_pet == 3, sub(".* ", "", translat$peters), "NA")
 
+# do same for clements
 translat$genus_clements <- sub(" .*", "", translat$clements)
 translat$species_clements <- sub(" [^ ]+$|^.*? ", "", translat$clements)
 translat$species_clements <- sub(" .*", "", translat$species_clements)
+translat$ssp_clements <- ifelse(translat$ct_clements == 3, sub(".* ", "", translat$clements), "NA")
 
-translat$ssp_clements <- ifelse(translat$io_rank == "ssp", sub(".* ", "", translat$clements), "NA")
-
+# have full name
 translat$full_clements <- paste(translat$genus_clements, translat$species_clements, translat$ssp_clements, sep = " ")
 translat$full_pet <- paste(translat$genus_pet, translat$species_pet, translat$ssp_pet, sep = " ")
 
@@ -86,7 +92,7 @@ upd0 <- lacmlist %>%
   distinct(fullname, .keep_all = TRUE)
 
 # which ones are missing? 
-check <- upd0[is.na(upd0$clements),] #2395 
+check <- upd0[is.na(upd0$clements),] #2107
 
 # first, filter those that are already matching the new taxonomy
 check2 <- check %>% 
@@ -103,7 +109,7 @@ n_distinct(upd3$fullname) #11119
 
 
 # check those missing
-check3 <- upd3[is.na(upd3$clements),] #2327 okay, fewer than before but slightly
+check3 <- upd3[is.na(upd3$clements),] #1437 okay, fewer than before but slightly
 
 check_next <- check3 %>% select(fullname, genus, species, subspecies, family, order)
 
@@ -113,7 +119,7 @@ upd4 <- check_next %>%
   distinct(fullname, .keep_all = T)
 
 # filter NA
-check4 <- upd4[is.na(upd4$clements),] #1437 okay, fewer than before but still a lot 
+check4 <- upd4[is.na(upd4$clements),] #1222 okay, fewer than before but still a lot 
 
 check_next <- check4 %>% select(fullname, genus, species, subspecies, family, order)
 
@@ -124,6 +130,8 @@ write.csv(check_next, "check_taxon.csv")
 1) remove clements == NA from upd3 and 
 merge it with
 2) remove clements == NA from upd4 
+3) merge everything back
+4) do a ifelse match fxn to get final list to Bill 
 
 
 
