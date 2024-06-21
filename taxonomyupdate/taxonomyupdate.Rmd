@@ -8,7 +8,7 @@ editor_options:
 ---
 
 ```{r}
-library(here)
+#library(here)
 library(tidyverse)
 library(readxl)
 library(stringi)
@@ -16,8 +16,8 @@ library(stringi)
 
 ```{r}
 setwd("C:/Users/young/Documents/nhm_ornithology/taxonomyupdate")
-here::i_am("taxonomyupdate.Rmd")
-here()
+#here::i_am("taxonomyupdate.Rmd")
+#here()
 ```
 
 Load LACM list
@@ -25,19 +25,22 @@ Load LACM list
 ```{r}
 lacm <- read_excel("lacmtaxonomy.xlsx", col_names = c("catlog", "order", "family", "genus", "species", "subspecies", "rank", "sciname"), skip=1)
 
-#test <- lacm[which(lacm$sciname == "Tyto alba"),]
-
-
 ltax <- unique(lacm$sciname) #5667; some subspecies don't have a species level entry
-ltax2 <- unique(lacm$fullname) #11539 (full list is 124096)
+
+# make a fullname column
+# first get all spp NA 
+lacm$spp <- lacm$subspecies
+lacm$spp[is.na(lacm$spp)] <- "NA"
+lacm$spp[lacm$spp == "ssp"]  <- "NA" 
+
+# concatenate for fullname 
+lacm$fullname <- paste(lacm$genus, lacm$species, lacm$spp)
 
 
-# get list of unique species + add family and order
+# get list of unique species + add family and order -> n=11119
 lacmlist <- lacm[!duplicated(lacm[,"fullname"]),] %>% select(fullname, sciname, subspecies, genus, species, family, order)
 
-
 #write.csv(lacmlist, "lacm_species_full.csv")
-#lacmlist <- read.csv("lacm_species2.csv")
 
 
 # new value for ssp=NA
@@ -49,10 +52,10 @@ lacmlist$subspecies[lacmlist$subspecies == "ssp"]  <- "NA"
 # change ssp value
 lacmlist$fullname <- gsub("ssp", "NA", lacmlist$fullname)
 
-n_distinct(lacmlist$fullname) #11119 
+n_distinct(lacmlist$fullname) #11119
 ```
 
-
+Import translation key
 ```{r}
 translat <- read_excel("peters_clements.xlsx")
 
@@ -81,58 +84,119 @@ translat$ssp_clements <- ifelse(translat$ct_clements == 3, sub(".* ", "", transl
 translat$full_clements <- paste(translat$genus_clements, translat$species_clements, translat$ssp_clements, sep = " ")
 translat$full_pet <- paste(translat$genus_pet, translat$species_pet, translat$ssp_pet, sep = " ")
 
-# left join - v1
-# upd <- lacmlist %>%  #5667 
-#   left_join(translat, by=c("genus" = "genus_pet", "species" = "species_pet")) %>% 
-#   distinct(sciname, .keep_all = TRUE)
-
-# left join - v2; better but missing some 
-upd0 <- lacmlist %>%
-  left_join(translat, by=c("genus" = "genus_pet", "species" = "species_pet", "subspecies" = "ssp_pet")) %>% 
-  distinct(fullname, .keep_all = TRUE)
-
-# which ones are missing? 
-check <- upd0[is.na(upd0$clements),] #2107
-
-# first, filter those that are already matching the new taxonomy
-check2 <- check %>% 
-  left_join(translat, by=c("genus" = "genus_clements", "species" = "species_clements", "subspecies" = "ssp_clements"))%>% 
-  distinct(fullname, .keep_all = TRUE)
-
-
-# left join - v3; goes from 11539 to 11119; but that is correct
-upd3 <- lacmlist %>% 
-  left_join(translat, by=c("fullname" = "full_pet")) %>% distinct(fullname, .keep_all = TRUE)
-
-n_distinct(lacmlist$fullname) #11119 
-n_distinct(upd3$fullname) #11119 
-
-
-# check those missing
-check3 <- upd3[is.na(upd3$clements),] #1437 okay, fewer than before but slightly
-
-check_next <- check3 %>% select(fullname, genus, species, subspecies, family, order)
-
-# join with clements name (i.e., emu name matches new clements list)
-upd4 <- check_next %>% 
-  left_join(translat, by=c("fullname" = "full_clements")) %>% 
-  distinct(fullname, .keep_all = T)
-
-# filter NA
-check4 <- upd4[is.na(upd4$clements),] #1222 okay, fewer than before but still a lot 
-
-check_next <- check4 %>% select(fullname, genus, species, subspecies, family, order)
-
-write.csv(check_next, "check_taxon.csv")
+#save
+#write.csv(translat, "translat.csv")
 ```
 
 
-1) remove clements == NA from upd3 and 
-merge it with
-2) remove clements == NA from upd4 
-3) merge everything back
-4) do a ifelse match fxn to get final list to Bill 
+Join with original data set
+```{r}
+# left join - goes from 11539 to 11119
+# how much of LACM species name matches old version assuming it is Peters
+update0 <- lacmlist %>% 
+  left_join(translat, by=c("fullname" = "full_pet")) %>% distinct(fullname, .keep_all = TRUE) %>% 
+  select(fullname, family, order, full_clements, IOC_seq, family_clements, order_clements)
 
+nrow(update0[is.na(update0$full_clements),]) #2106
+
+n_distinct(lacmlist$fullname) #11119
+n_distinct(update$fullname) #11119
+
+# get part 1 without NAs
+part1 <- update0[!is.na(update0$full_clements),] #9039 -> add all parts for 11119
+
+rest1 <- update0[is.na(update0$full_clements),] %>% 
+  select(-family_clements, -order_clements) #2080
+  
+#############
+# next step
+# with the ones without full_clements, merge with translat again now using clements
+update1 <- rest1 %>% 
+  select(-IOC_seq) %>% 
+  left_join(translat, by=c("fullname" = "full_clements")) %>% 
+  distinct(fullname, .keep_all = T) %>% 
+  select(fullname, family, order, clements, IOC_seq, family_clements, order_clements)
+
+nrow(update1[is.na(update1$clements),]) #1196
+
+part2 <- update1[!is.na(update1$clements),] #884
+
+rest2 <- update1[is.na(update1$clements),] #1196
+ 
+#############
+# next step
+# manually checked with check_taxon.csv
+# initially was from check4 %>% select(fullname, genus, species, subspecies, family, order)
+# count varies slightly
+checkcomp <- read.csv("check_taxon.csv")
+
+update2 <- rest2 %>% 
+  select(-order, -family) %>% 
+  left_join(checkcomp, by="fullname") %>% 
+  select(fullname, new_fullname, family, order) 
+
+
+translat2 <- translat %>% 
+  select(IOC_seq, ioc, clements, family_clements, order_clements)
+
+checklast2 <- update2 %>% 
+  left_join(translat2, by=c("new_fullname" = "clements")) %>% 
+  distinct(new_fullname, .keep_all = T)
+
+
+# still some that are NA
+part3 <- checklast2[!is.na(checklast2$family_clements),] #974
+
+rest3 <- checklast2[is.na(checklast2$family_clements),] #112
+
+# merge finals with ioc
+checklast3 <- rest3 %>% 
+  select(-family_clements, -order_clements, -IOC_seq) %>% 
+  left_join(translat2, by=c("new_fullname" = "ioc"))  %>% 
+  distinct(new_fullname, .keep_all = T)
+  
+part4 <- checklast3[!is.na(checklast3$family_clements),] #38
+
+rest4 <- checklast3[is.na(checklast3$family_clements),] #74
+
+# rest are sp 
+rest4$genus <- sub(" .*", "", rest4$new_fullname)
+rest4.0 <- rest4 %>% 
+  select(fullname, new_fullname, genus, family, order) %>%   
+  left_join(translat, by = c("genus" = "genus_clements")) %>% 
+  select(fullname, family, order, new_fullname, full_clements, family_clements, order_clements) %>% 
+  distinct(new_fullname, .keep_all = T)
+```
+
+
+Merge all together
+```{r}
+part2.0 <- part2 %>% 
+  mutate(full_clements = fullname) %>% 
+  select(fullname, family, order, full_clements, IOC_seq, family_clements, order_clements)
+
+# for part 3, make full_clements is missing so add
+part3.0 <- part3 %>% 
+  mutate(full_clements = new_fullname) %>% 
+  select(fullname, family, order, full_clements, IOC_seq, family_clements, order_clements)
+
+# for part 4, new_fullname becomes full_clements
+# missing NA at the end for full_clements
+# delete all NA at the fulldata set level
+part4.0 <- part4 %>% 
+  mutate(full_clements = new_fullname) %>% 
+  select(fullname, family, order, full_clements, IOC_seq, family_clements, order_clements)
+
+# last
+rest4.1 <- rest4.0 %>% 
+  select(-full_clements) %>% 
+  mutate(full_clements = new_fullname,
+         IOC_seq = NA) %>% 
+  select(fullname, family, order, full_clements, IOC_seq, family_clements, order_clements)
+
+# merge all 
+fulldata <- rbind(part1, part2.0, part3.0, part4.0, rest4.1)
+```
 
 
 
@@ -165,44 +229,3 @@ upd2 <- upd %>%
          new_species = species_clements)
   select(IOC_seq, emu_order, emu_family, emu_genus, emu_species, emu_subspecies, new_order, new_family, new_genus, new_species, )
 ```
-
-
-
-
-
-
-
-
-
-
-# old
-Load IOC list for comparison; want to update lacm list to IOC 
-
-```{r}
-ioc <- read_excel("taxlists.xlsx")
-ioc2 <- ioc %>% 
- filter(rank == "species") #only filter out at species level, not subspecies
-
-iocsub <- ioc[,1:12] #only the first 12 columns
-
-comp <- lacmlist 
-```
-
-
-Seems like some subspecies got split; 
-```{r}
-new <- lacmlist %>% 
-  left_join(mbf_hm_translation, by=c("genus"="Genus_MBF","species"="Species_MBF")) %>% 
-  filter(!is.na(ORDER_MBF)) #n=6023
-```
-
-
-Deal with subspecies
-```{r}
-lacm0 <- lacm %>% filter(subspecies != "ssp")
-
-lacm0$spp <- paste(lacm0$genus, lacm0$species, lacm0$subspecies, sep=" ")
-
-lacmlist0 <- lacm0[!duplicated(lacm0[,"spp"]),] %>% select(spp, sciname, genus, species, family, order) #7634
-```
-
