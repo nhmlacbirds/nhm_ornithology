@@ -201,6 +201,28 @@ write.csv(fulldata, "fulldata.csv")
 ```
 
 
+# organize to send to Bill
+```{r}
+fulldata <- read.csv("fulldata.csv")
+
+# split full name to species, genus
+fulldata$new_genus <- sub(" .*", "", fulldata$full_clements)
+fulldata$new_species <- sub(" [^ ]+$|^.*? ", "", fulldata$full_clements)
+fulldata$new_species <- sub(" .*", "", fulldata$new_species)
+
+fulldata$genus_emu <- sub(" .*", "", fulldata$full_clements)
+fulldata$species_clements <- sub(" [^ ]+$|^.*? ", "", fulldata$full_clements)
+fulldata$species_clements <- sub(" .*", "", fulldata$species_clements)
+
+# remove NA
+
+# Lower caps 
+fulldata$order_clements <- str_to_title(fulldata$order_clements)
+
+# arrange by IOC_seq? aren't some missing? 
+```
+
+
 
 Next steps
 ```{r}
