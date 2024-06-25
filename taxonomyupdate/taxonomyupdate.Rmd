@@ -196,6 +196,8 @@ rest4.1 <- rest4.0 %>%
 
 # merge all 
 fulldata <- rbind(part1, part2.0, part3.0, part4.0, rest4.1)
+
+write.csv(fulldata, "fulldata.csv")
 ```
 
 
