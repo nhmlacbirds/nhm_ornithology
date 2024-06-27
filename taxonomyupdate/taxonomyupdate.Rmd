@@ -100,7 +100,7 @@ update0 <- lacmlist %>%
 nrow(update0[is.na(update0$full_clements),]) #2106
 
 n_distinct(lacmlist$fullname) #11119
-n_distinct(update$fullname) #11119
+n_distinct(update0$fullname) #11119
 
 # get part 1 without NAs
 part1 <- update0[!is.na(update0$full_clements),] #9039 -> add all parts for 11119
@@ -133,15 +133,19 @@ checkcomp <- read.csv("check_taxon.csv")
 update2 <- rest2 %>% 
   select(-order, -family) %>% 
   left_join(checkcomp, by="fullname") %>% 
-  select(fullname, new_fullname, family, order) 
-
+  select(fullname, new_fullname, family, order) #1196
+n_distinct(update2$fullname) #1196
+n_distinct(update2$new_fullname) #1086
+# what does this mean? some old names were duplicates and got merged into new ones? 
+# But I still want the complete list to send to Bill 
 
 translat2 <- translat %>% 
-  select(IOC_seq, ioc, clements, family_clements, order_clements)
+  select(IOC_seq, ioc, full_clements, clements, family_clements, order_clements)
 
+# left join - why does it drop from 1196 to 1086? 
 checklast2 <- update2 %>% 
   left_join(translat2, by=c("new_fullname" = "clements")) %>% 
-  distinct(new_fullname, .keep_all = T)
+  distinct(fullname, .keep_all = T) #1086
 
 
 # still some that are NA
@@ -153,11 +157,11 @@ rest3 <- checklast2[is.na(checklast2$family_clements),] #112
 checklast3 <- rest3 %>% 
   select(-family_clements, -order_clements, -IOC_seq) %>% 
   left_join(translat2, by=c("new_fullname" = "ioc"))  %>% 
-  distinct(new_fullname, .keep_all = T)
+  distinct(fullname, .keep_all = T)
   
-part4 <- checklast3[!is.na(checklast3$family_clements),] #38
+part4 <- checklast3[!is.na(checklast3$family_clements),] #52
 
-rest4 <- checklast3[is.na(checklast3$family_clements),] #74
+rest4 <- checklast3[is.na(checklast3$family_clements),] #75
 
 # rest are sp 
 rest4$genus <- sub(" .*", "", rest4$new_fullname)
@@ -165,7 +169,7 @@ rest4.0 <- rest4 %>%
   select(fullname, new_fullname, genus, family, order) %>%   
   left_join(translat, by = c("genus" = "genus_clements")) %>% 
   select(fullname, family, order, new_fullname, full_clements, family_clements, order_clements) %>% 
-  distinct(new_fullname, .keep_all = T)
+  distinct(fullname, .keep_all = T)
 ```
 
 
@@ -241,10 +245,16 @@ fulldata2 <- fulldata %>%
   select(IOC_seq, emu_fullname, emu_order, emu_family, emu_genus, emu_species, emu_subspecies, new_fullname, new_order, new_family, new_genus, new_species, new_subspecies, namechange, familychange, orderchange)
 
 # a couple of weird ones that need to be deleted
-fulldata2 <- fulldata2[c(-7, -16),]
+mancheck <- fulldata2[which(fulldata2$IOC_seq == 45 & fulldata2$emu_species == "NA"),]
+write.csv(mancheck, "mancheck.csv")
+mancheck_new <- read.csv("mancheck.csv")
+
+fulldata2 <- fulldata2[-which(fulldata2$IOC_seq == 45 & fulldata2$emu_species == "NA"),]
+
+fulldata3 <- rbind(fulldata2, mancheck_new)
 
 # write csv
-write.csv(fulldata2, "lacm_updatedtaxonomy.csv")
+write.csv(fulldata3, "lacm_updatedtaxonomy.csv")
 ```
 
 

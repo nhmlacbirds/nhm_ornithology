@@ -1,0 +1,16 @@
+IOC_seq,emu_fullname,emu_order,emu_family,emu_genus,emu_species,emu_subspecies,new_fullname,new_order,new_family,new_genus,new_species,new_subspecies,namechange,familychange,orderchange
+,Anas  NA,Anseriformes,Anatidae,Anas,NA,NA,Anas sp,Anseriformes,Anatidae,Anas,NA,NA,NA,No,No
+,Paradisaea  NA,Passeriformes,Paradisaeidae,Paradisaea,NA,NA,Paradisaea sp,Passeriformes,Paradisaeidae,Paradisaea,NA,NA,NA,No,No
+,Selasphorus  NA,Apodiformes,Trochilidae,Selasphorus,NA,NA,Selasphorus sp,Apodiformes,Trochilidae,Selasphorus,NA,NA,NA,No,No
+,Sphyrapicus  NA,Piciformes,Picidae,Sphyrapicus,NA,NA,Sphyrapicus sp,Piciformes,Picidae,Sphyrapicus,NA,NA,NA,No,No
+,Sericornis  NA,Passeriformes,Acanthizidae,Sericornis,NA,NA,Sericornis sp,Passeriformes,Acanthizidae,Sericornis,NA,NA,NA,No,No
+,Meliphaga  NA,Passeriformes,Meliphagidae,Meliphaga,NA,NA,Meliphaga sp,Passeriformes,Meliphagidae,Meliphaga,NA,NA,NA,No,No
+,Hemispingus  NA,Passeriformes,Emberizidae,Hemispingus,NA,NA,Sphenopsis sp,Passeriformes,Thraupidae,Sphenopsis,NA,NA,NA,Yes,No
+,Melanocharis  NA,Passeriformes,Dicaeidae,Melanocharis,NA,NA,Melanocharis sp,Passeriformes,Melanocharitidae,Melanocharis,NA,NA,NA,Yes,No
+,Ptiloprora  NA,Passeriformes,Meliphagidae,Ptiloprora,NA,NA,Ptiloprora sp,Passeriformes,Meliphagidae,Ptiloprora,NA,NA,NA,No,No
+,Limnodromus  NA,Charadriiformes,Scolopacidae,Limnodromus,NA,NA,Limnodromus sp,Charadriiformes,Scolopacidae,Limnodromus,NA,NA,NA,No,No
+,Patagioenas  NA,Columbiformes,Columbidae,Patagioenas,NA,NA,Patagioenas sp,Columbiformes,Columbidae,Patagioenas,NA,NA,NA,No,No
+,Cygnus  NA,Anseriformes,Anatidae,Cygnus,NA,NA,Cygnus sp,Anseriformes,Anatidae,Cygnus,NA,NA,NA,No,No
+,Colinus  NA,Galliformes,Phasianidae,Colinus,NA,NA,Colinus sp,Galliformes,Odontophoridae,Colinus,NA,NA,NA,Yes,No
+,Oceanodroma  NA,Procellariiformes,Hydrobatidae,Oceanodroma,NA,NA,Hydrobates sp,Procellariiformes,Hydrobatidae,Hydrobates,NA,NA,NA,No,No
+,Calidris  NA,Charadriiformes,Scolopacidae,Calidris,NA,NA,Calidris sp,Charadriiformes,Scolopacidae,Calidris,NA,NA,NA,No,No
